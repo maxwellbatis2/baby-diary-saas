@@ -1,5 +1,10 @@
 import * as admin from 'firebase-admin';
 
+// Verificar se as credenciais do Firebase estão configuradas
+const hasFirebaseConfig = process.env.FIREBASE_PROJECT_ID && 
+                         process.env.FIREBASE_PRIVATE_KEY && 
+                         process.env.FIREBASE_CLIENT_EMAIL;
+
 // Configuração do Firebase Admin SDK
 const serviceAccount = {
   type: process.env.FIREBASE_TYPE || 'service_account',
@@ -14,8 +19,8 @@ const serviceAccount = {
   client_x509_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL || ''
 };
 
-// Inicializar Firebase Admin SDK apenas se houver configuração
-if (!admin.apps.length && process.env.FIREBASE_PROJECT_ID) {
+// Inicializar Firebase Admin SDK apenas se houver configuração completa
+if (!admin.apps.length && hasFirebaseConfig) {
   try {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
@@ -25,9 +30,10 @@ if (!admin.apps.length && process.env.FIREBASE_PROJECT_ID) {
   } catch (error) {
     console.warn('⚠️ Erro ao inicializar Firebase Admin SDK:', error);
   }
-} else if (!process.env.FIREBASE_PROJECT_ID) {
+} else if (!hasFirebaseConfig) {
   console.log('ℹ️ Firebase Admin SDK não configurado - notificações push desabilitadas');
 }
 
+// Exportar messaging apenas se o Firebase estiver inicializado
 export const messaging = admin.apps.length > 0 ? admin.messaging() : null;
 export default admin; 

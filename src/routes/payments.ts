@@ -200,9 +200,7 @@ router.post('/reactivate-subscription', async (req: Request, res: Response) => {
     }
 
     // Reativar no Stripe
-    await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
-      cancel_at_period_end: false,
-    });
+    await cancelSubscription(subscription.stripeSubscriptionId, false);
 
     // Atualizar no banco
     const updatedSubscription = await prisma.subscription.update({
@@ -254,6 +252,13 @@ router.get('/payment-history', async (req: Request, res: Response) => {
     }
 
     // Buscar histórico de pagamentos no Stripe
+    if (!stripe) {
+      return res.status(503).json({
+        success: false,
+        error: 'Stripe não configurado',
+      });
+    }
+
     const payments = await stripe.invoices.list({
       subscription: subscription.stripeSubscriptionId,
       limit: 10,
