@@ -1,8 +1,8 @@
 import Stripe from 'stripe';
-import prisma from '@/config/database';
+import prisma from '../config/database';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2023-10-16',
 });
 
 export class StripeService {
@@ -24,12 +24,12 @@ export class StripeService {
   async createPrice(productId: string, amount: number, currency: string = 'brl', interval: 'month' | 'year' = 'month') {
     try {
       const price = await stripe.prices.create({
-        product: productId,
         unit_amount: Math.round(amount * 100), // Stripe usa centavos
         currency,
         recurring: {
           interval,
         },
+        product: productId,
       });
       return price;
     } catch (error) {
@@ -41,13 +41,16 @@ export class StripeService {
   // Criar cliente no Stripe
   async createCustomer(email: string, name?: string) {
     try {
-      const customer = await stripe.customers.create({
-        email,
-        name,
-      });
+      const customerData: any = { email };
+      
+      if (name) {
+        customerData.name = name;
+      }
+
+      const customer = await stripe.customers.create(customerData);
       return customer;
     } catch (error) {
-      console.error('Erro ao criar cliente no Stripe:', error);
+      console.error('Erro ao criar cliente:', error);
       throw error;
     }
   }
@@ -56,7 +59,6 @@ export class StripeService {
   async createCheckoutSession(customerId: string, priceId: string, successUrl: string, cancelUrl: string) {
     try {
       const session = await stripe.checkout.sessions.create({
-        customer: customerId,
         payment_method_types: ['card'],
         line_items: [
           {
@@ -65,10 +67,13 @@ export class StripeService {
           },
         ],
         mode: 'subscription',
+        customer: customerId,
         success_url: successUrl,
         cancel_url: cancelUrl,
         allow_promotion_codes: true,
+        billing_address_collection: 'required',
       });
+
       return session;
     } catch (error) {
       console.error('Erro ao criar sessão de checkout:', error);
@@ -102,8 +107,8 @@ export class StripeService {
       if (!customerId) {
         const customer = await this.createCustomer(user.email, user.name || undefined);
         customerId = customer.id;
-        
-        // Atualizar usuário com o ID do cliente
+
+        // Atualizar usuário com o customer ID
         await prisma.user.update({
           where: { id: userId },
           data: { stripeCustomerId: customerId },
@@ -128,15 +133,11 @@ export class StripeService {
   // Cancelar assinatura
   async cancelSubscription(subscriptionId: string, cancelAtPeriodEnd: boolean = true) {
     try {
-      if (cancelAtPeriodEnd) {
-        const subscription = await stripe.subscriptions.update(subscriptionId, {
-          cancel_at_period_end: true,
-        });
-        return subscription;
-      } else {
-        const subscription = await stripe.subscriptions.cancel(subscriptionId);
-        return subscription;
-      }
+      const subscription = await stripe.subscriptions.update(subscriptionId, {
+        cancel_at_period_end: cancelAtPeriodEnd,
+      });
+
+      return subscription;
     } catch (error) {
       console.error('Erro ao cancelar assinatura:', error);
       throw error;
@@ -148,6 +149,10 @@ export class StripeService {
     try {
       const subscription = await stripe.subscriptions.retrieve(subscriptionId);
       
+      if (!subscription.items.data[0]) {
+        throw new Error('Assinatura não possui itens');
+      }
+
       const updatedSubscription = await stripe.subscriptions.update(subscriptionId, {
         items: [
           {

@@ -441,7 +441,7 @@ function PricingCardAdmin({
           </span>
           {!isFree && (
             <span className="text-lg text-muted-foreground">
-              {plan.yearlyPrice !== null ? `R$ ${plan.yearlyPrice.toFixed(2).replace('.', ',')} ${periodDisplay}` : periodDisplay}
+              {plan.yearlyPrice ? `R$ ${plan.yearlyPrice.toFixed(2).replace('.', ',')} ${periodDisplay}` : periodDisplay}
             </span>
           )}
         </div>

@@ -250,7 +250,7 @@ export class FamilyService {
             {
               memberName: member.name,
               memoryTitle: memory.title,
-              userName: memory.user?.name || 'Família'
+              userName: 'Família'
             }
           );
         }
@@ -270,45 +270,54 @@ export class FamilyService {
   // Obter memórias compartilhadas
   async getSharedMemories(userId: string) {
     try {
-      const user = await prisma.user.findUnique({
-        where: { id: userId }
-      });
-
-      if (!user) {
-        throw new Error('Usuário não encontrado');
-      }
-
-      // Buscar memórias onde o usuário está na lista de compartilhamento
+      // Buscar memórias compartilhadas com o usuário
       const sharedMemories = await prisma.memory.findMany({
         where: {
-          sharedWith: {
-            array_contains: [userId]
-          },
+          OR: [
+            { userId }, // Memórias próprias
+            {
+              sharedWith: {
+                path: ['$'],
+                array_contains: userId
+              }
+            }
+          ],
           isPublic: true
         },
         include: {
           baby: {
             select: {
               id: true,
-              name: true,
-              photoUrl: true
-            }
-          },
-          user: {
-            select: {
-              id: true,
-              name: true,
-              avatarUrl: true
+              name: true
             }
           }
         },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { date: 'desc' }
       });
 
-      return sharedMemories;
+      // Formatar memórias para resposta
+      const formattedMemories = sharedMemories.map(memory => ({
+        id: memory.id,
+        title: memory.title,
+        description: memory.description,
+        date: memory.date,
+        photoUrl: memory.photoUrl,
+        babyName: memory.baby?.name || 'Bebê não encontrado',
+        babyId: memory.baby?.id,
+        userName: 'Família', // Simplificado - não temos acesso ao user aqui
+        isOwn: memory.userId === userId
+      }));
+
+      return {
+        success: true,
+        data: formattedMemories
+      };
     } catch (error) {
       console.error('Erro ao buscar memórias compartilhadas:', error);
-      throw new Error('Falha ao buscar memórias compartilhadas');
+      return {
+        success: false,
+        error: 'Erro interno do servidor'
+      };
     }
   }
 
@@ -425,17 +434,17 @@ export class FamilyService {
       });
 
       for (const member of familyMembers) {
-        if (this.checkFamilyPermissions(userId, member.id, 'view_activities')) {
-          await notificationService.sendPushNotification(
-            userId, // Enviar do usuário principal
-            '📝 Nova Atividade',
-            `${baby.name}: ${activityData.title}`,
-            {
+        if (await this.checkFamilyPermissions(userId, member.id, 'view_activities')) {
+          await notificationService.sendPushNotification({
+            userId: member.userId, // Enviar para o membro da família
+            title: '📝 Nova Atividade',
+            body: `${baby.name}: ${activityData.title}`,
+            data: {
               type: 'shared_activity',
               babyId,
               activityId: activity.id
             }
-          );
+          });
         }
       }
 

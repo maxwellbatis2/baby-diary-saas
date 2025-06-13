@@ -81,348 +81,354 @@ export class AIService {
   }
 
   async analyzeSleepPattern(userId: string, sleepData: any) {
-    const prompt = `
-    Analise os padrões de sono do bebê e forneça insights personalizados.
-    
-    Dados do sono:
-    - Idade do bebê: ${sleepData.babyAge} meses
-    - Registros de sono: ${JSON.stringify(sleepData.sleepRecords)}
-    - Duração média: ${sleepData.averageDuration} horas
-    - Qualidade geral: ${sleepData.overallQuality}
-    
-    Forneça:
-    1. Análise dos padrões atuais
-    2. Sugestões para melhorar a qualidade do sono
-    3. Expectativas para a idade do bebê
-    4. Dicas práticas para os pais
-    5. Sinais de alerta (se houver)
-    
-    Responda em português brasileiro de forma clara e acolhedora.
-    `;
-
-    const request: AIRequest = {
-      model: 'llama-3.3-70b-versatile',
-      messages: [
-        {
-          role: 'system',
-          content: 'Você é um especialista em desenvolvimento infantil e sono de bebês. Forneça conselhos práticos e acolhedores baseados em evidências científicas.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 1000
-    };
-
     try {
-      const response = await this.makeRequest(request);
+      const prompt = `Analise o padrão de sono do bebê ${sleepData.babyName || 'do bebê'} (${sleepData.babyAge} meses):
+
+Dados de sono dos últimos dias:
+- Tempo médio de sono: ${sleepData.averageSleepTime} minutos
+- Total de registros: ${sleepData.sleepCount}
+- Qualidade do sono: ${JSON.stringify(sleepData.qualityCounts)}
+
+Forneça:
+1. Análise do padrão atual
+2. Recomendações para melhorar a qualidade do sono
+3. Horários sugeridos baseados na idade
+4. Sinais de alerta se houver
+
+Responda em português brasileiro de forma clara e acolhedora.`;
+
+      const response = await this.makeRequest({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          {
+            role: 'system',
+            content: 'Você é um especialista em desenvolvimento infantil e padrões de sono de bebês. Forneça conselhos práticos e acolhedores.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 1000
+      });
+
+      if (!response.choices || !response.choices[0] || !response.choices[0].message) {
+        throw new Error('Resposta inválida da IA');
+      }
+
       const analysis = response.choices[0].message.content;
 
-      await this.logInteraction(
-        userId,
-        'sleep_analysis',
-        sleepData,
-        { analysis },
-        request.model,
-        response.usage.total_tokens
-      );
+      // Extrair recomendações
+      const recommendations = this.extractRecommendations(analysis);
+
+      await this.logInteraction(userId, 'sleep_analysis', sleepData, { analysis, recommendations }, 'llama-3.3-70b-versatile', response.usage?.total_tokens);
 
       return {
         analysis,
-        tokensUsed: response.usage.total_tokens,
-        recommendations: this.extractRecommendations(analysis)
+        recommendations,
+        metrics: {
+          averageSleepTime: sleepData.averageSleepTime,
+          sleepCount: sleepData.sleepCount,
+          qualityDistribution: sleepData.qualityCounts
+        }
       };
     } catch (error) {
       console.error('Erro na análise de sono:', error);
-      throw new Error('Não foi possível analisar os padrões de sono');
+      return {
+        analysis: 'Não foi possível analisar o padrão de sono no momento. Tente novamente mais tarde.',
+        recommendations: ['Mantenha um registro consistente do sono do bebê', 'Observe os horários de maior tranquilidade'],
+        metrics: sleepData
+      };
     }
   }
 
   async getFeedingTips(userId: string, feedingData: any) {
-    const prompt = `
-    Forneça dicas personalizadas de alimentação para o bebê.
-    
-    Dados de alimentação:
-    - Idade do bebê: ${feedingData.babyAge} meses
-    - Tipo de alimentação atual: ${feedingData.feedingType}
-    - Histórico de alimentação: ${JSON.stringify(feedingData.feedingHistory)}
-    - Preferências observadas: ${feedingData.preferences}
-    - Problemas enfrentados: ${feedingData.issues || 'Nenhum'}
-    
-    Forneça:
-    1. Dicas específicas para a idade
-    2. Sugestões de introdução alimentar (se aplicável)
-    3. Sinais de que o bebê está pronto para novos alimentos
-    4. Dicas para lidar com recusas
-    5. Informações nutricionais importantes
-    
-    Responda em português brasileiro de forma prática e acolhedora.
-    `;
-
-    const request: AIRequest = {
-      model: 'llama-3.3-70b-versatile',
-      messages: [
-        {
-          role: 'system',
-          content: 'Você é um nutricionista pediátrico especializado em alimentação infantil. Forneça conselhos práticos e seguros baseados em evidências científicas.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 800
-    };
-
     try {
-      const response = await this.makeRequest(request);
+      const prompt = `Forneça dicas de alimentação para ${feedingData.babyName || 'o bebê'} (${feedingData.babyAge} meses):
+
+Dados de alimentação:
+- Total de mamadas/refeições: ${feedingData.totalFeedings}
+- Intervalo médio: ${feedingData.averageInterval} minutos
+- Pergunta específica: ${feedingData.question}
+
+Forneça:
+1. Dicas práticas para a idade
+2. Sinais de fome e saciedade
+3. Introdução alimentar se aplicável
+4. Próximos passos recomendados
+
+Responda em português brasileiro de forma acolhedora e prática.`;
+
+      const response = await this.makeRequest({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          {
+            role: 'system',
+            content: 'Você é um especialista em nutrição infantil e alimentação de bebês. Forneça conselhos práticos e seguros.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 1000
+      });
+
+      if (!response.choices || !response.choices[0] || !response.choices[0].message) {
+        throw new Error('Resposta inválida da IA');
+      }
+
       const tips = response.choices[0].message.content;
 
-      await this.logInteraction(
-        userId,
-        'feeding_tips',
-        feedingData,
-        { tips },
-        request.model,
-        response.usage.total_tokens
-      );
+      // Extrair próximos passos
+      const nextSteps = this.extractNextSteps(tips);
+
+      await this.logInteraction(userId, 'feeding_tips', feedingData, { tips, nextSteps }, 'llama-3.3-70b-versatile', response.usage?.total_tokens);
 
       return {
         tips,
-        tokensUsed: response.usage.total_tokens,
-        nextSteps: this.extractNextSteps(tips)
+        nextSteps,
+        context: {
+          babyAge: feedingData.babyAge,
+          totalFeedings: feedingData.totalFeedings
+        }
       };
     } catch (error) {
       console.error('Erro ao obter dicas de alimentação:', error);
-      throw new Error('Não foi possível obter dicas de alimentação');
+      return {
+        tips: 'Não foi possível gerar dicas de alimentação no momento. Consulte um pediatra para orientações específicas.',
+        nextSteps: ['Mantenha um registro das refeições', 'Observe as reações do bebê aos alimentos'],
+        context: feedingData
+      };
     }
   }
 
   async predictMilestones(userId: string, babyData: any) {
-    const prompt = `
-    Preveja os próximos marcos de desenvolvimento para o bebê.
-    
-    Dados do bebê:
-    - Idade: ${babyData.age} meses
-    - Marcos já alcançados: ${JSON.stringify(babyData.achievedMilestones)}
-    - Desenvolvimento atual: ${JSON.stringify(babyData.currentDevelopment)}
-    - Histórico familiar: ${babyData.familyHistory || 'Não informado'}
-    
-    Forneça:
-    1. Próximos marcos esperados (próximos 1-3 meses)
-    2. Sinais a observar
-    3. Atividades para estimular o desenvolvimento
-    4. Quando procurar um pediatra
-    5. Variações normais no desenvolvimento
-    
-    Responda em português brasileiro de forma clara e tranquilizadora.
-    `;
-
-    const request: AIRequest = {
-      model: 'llama-3.3-70b-versatile',
-      messages: [
-        {
-          role: 'system',
-          content: 'Você é um pediatra especializado em desenvolvimento infantil. Forneça previsões baseadas em evidências científicas, sempre lembrando que cada bebê se desenvolve no seu próprio ritmo.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.6,
-      max_tokens: 1000
-    };
-
     try {
-      const response = await this.makeRequest(request);
+      const achievedMilestones = babyData.achievedMilestones?.map((m: any) => m.title).join(', ') || 'Nenhum marco registrado ainda';
+
+      const prompt = `Preveja os próximos marcos de desenvolvimento para ${babyData.babyName || 'o bebê'} (${babyData.babyAge} meses, ${babyData.gender || 'sexo não informado'}):
+
+Marcos já alcançados: ${achievedMilestones}
+
+Forneça:
+1. Próximos marcos esperados para os próximos 3 meses
+2. Timeline de desenvolvimento
+3. Sinais a observar
+4. Atividades para estimular o desenvolvimento
+
+Responda em português brasileiro de forma clara e organizada.`;
+
+      const response = await this.makeRequest({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          {
+            role: 'system',
+            content: 'Você é um especialista em desenvolvimento infantil e marcos de desenvolvimento. Forneça previsões baseadas em evidências científicas.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 1200
+      });
+
+      if (!response.choices || !response.choices[0] || !response.choices[0].message) {
+        throw new Error('Resposta inválida da IA');
+      }
+
       const predictions = response.choices[0].message.content;
 
-      await this.logInteraction(
-        userId,
-        'milestone_prediction',
-        babyData,
-        { predictions },
-        request.model,
-        response.usage.total_tokens
-      );
+      // Extrair timeline
+      const timeline = this.extractTimeline(predictions);
+
+      await this.logInteraction(userId, 'milestone_prediction', babyData, { predictions, timeline }, 'llama-3.3-70b-versatile', response.usage?.total_tokens);
 
       return {
         predictions,
-        tokensUsed: response.usage.total_tokens,
-        timeline: this.extractTimeline(predictions)
+        timeline,
+        context: {
+          babyAge: babyData.babyAge,
+          achievedMilestones: babyData.achievedMilestones?.length || 0
+        }
       };
     } catch (error) {
       console.error('Erro na previsão de marcos:', error);
-      throw new Error('Não foi possível prever os próximos marcos');
+      return {
+        predictions: 'Não foi possível prever marcos no momento. Consulte um pediatra para acompanhamento do desenvolvimento.',
+        timeline: {},
+        context: babyData
+      };
     }
   }
 
   async interpretCry(userId: string, cryData: any) {
-    const prompt = `
-    Ajude a interpretar o choro do bebê baseado nos dados fornecidos.
-    
-    Dados do choro:
-    - Idade do bebê: ${cryData.babyAge} meses
-    - Duração do choro: ${cryData.duration} minutos
-    - Horário: ${cryData.timeOfDay}
-    - Contexto: ${cryData.context}
-    - Última alimentação: ${cryData.lastFeeding}
-    - Última troca de fralda: ${cryData.lastDiaperChange}
-    - Último sono: ${cryData.lastSleep}
-    - Sinais observados: ${cryData.observedSigns}
-    
-    Forneça:
-    1. Possíveis causas do choro
-    2. Sinais a observar
-    3. Técnicas de acalmar
-    4. Quando procurar ajuda médica
-    5. Prevenção para o futuro
-    
-    Responda em português brasileiro de forma acolhedora e prática.
-    `;
-
-    const request: AIRequest = {
-      model: 'llama-3.3-70b-versatile',
-      messages: [
-        {
-          role: 'system',
-          content: 'Você é um especialista em comportamento infantil e pediatria. Forneça interpretações baseadas em evidências científicas, sempre priorizando a segurança e bem-estar do bebê.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 800
-    };
-
     try {
-      const response = await this.makeRequest(request);
+      const prompt = `Interprete o choro do bebê ${cryData.babyName || ''} (${cryData.babyAge} meses):
+
+Dados do choro: ${JSON.stringify(cryData.cryData)}
+
+Contexto recente:
+- Última alimentação: ${cryData.lastFeeding ? 'Sim' : 'Não'}
+- Último sono: ${cryData.lastSleep ? 'Sim' : 'Não'}
+- Última troca: ${cryData.lastDiaper ? 'Sim' : 'Não'}
+
+Forneça:
+1. Possíveis causas do choro
+2. Nível de urgência (baixo, médio, alto)
+3. Ações recomendadas
+4. Sinais de alerta
+
+Responda em português brasileiro de forma clara e acolhedora.`;
+
+      const response = await this.makeRequest({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          {
+            role: 'system',
+            content: 'Você é um especialista em comportamento infantil e interpretação de choro de bebês. Forneça orientações práticas e acolhedoras.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 800
+      });
+
+      if (!response.choices || !response.choices[0] || !response.choices[0].message) {
+        throw new Error('Resposta inválida da IA');
+      }
+
       const interpretation = response.choices[0].message.content;
 
-      await this.logInteraction(
-        userId,
-        'cry_interpretation',
-        cryData,
-        { interpretation },
-        request.model,
-        response.usage.total_tokens
-      );
+      // Avaliar urgência
+      const urgency = this.assessUrgency(interpretation);
+
+      await this.logInteraction(userId, 'cry_interpretation', cryData, { interpretation, urgency }, 'llama-3.3-70b-versatile', response.usage?.total_tokens);
 
       return {
         interpretation,
-        tokensUsed: response.usage.total_tokens,
-        urgency: this.assessUrgency(interpretation)
+        urgency,
+        context: {
+          babyAge: cryData.babyAge,
+          timeOfDay: new Date().toLocaleTimeString()
+        }
       };
     } catch (error) {
       console.error('Erro na interpretação do choro:', error);
-      throw new Error('Não foi possível interpretar o choro');
+      return {
+        interpretation: 'Não foi possível interpretar o choro no momento. Se o choro persistir ou houver outros sintomas, consulte um pediatra.',
+        urgency: 'medium',
+        context: cryData
+      };
     }
   }
 
   async getPersonalizedAdvice(userId: string, question: string, context: any) {
-    const prompt = `
-    Forneça conselhos personalizados baseados na pergunta e contexto fornecidos.
-    
-    Pergunta: ${question}
-    
-    Contexto:
-    - Idade do bebê: ${context.babyAge} meses
-    - Histórico recente: ${JSON.stringify(context.recentHistory)}
-    - Preocupações específicas: ${context.concerns}
-    - Situação atual: ${context.currentSituation}
-    
-    Forneça:
-    1. Resposta direta à pergunta
-    2. Contexto e explicações
-    3. Dicas práticas
-    4. Sinais de alerta (se aplicável)
-    5. Próximos passos recomendados
-    
-    Responda em português brasileiro de forma clara, acolhedora e baseada em evidências científicas.
-    `;
-
-    const request: AIRequest = {
-      model: 'llama-3.3-70b-versatile',
-      messages: [
-        {
-          role: 'system',
-          content: 'Você é um pediatra experiente e acolhedor. Forneça conselhos práticos e seguros, sempre priorizando o bem-estar da família e do bebê.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 1200
-    };
-
     try {
-      const response = await this.makeRequest(request);
+      const prompt = `Forneça conselho personalizado para a seguinte pergunta sobre ${context.baby?.name || 'o bebê'}:
+
+Pergunta: ${question}
+
+Contexto:
+- Idade do bebê: ${context.baby ? Math.floor((Date.now() - new Date(context.baby.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 30)) : 'Não informada'} meses
+- Plano do usuário: ${context.plan?.name || 'Básico'}
+- Atividades recentes: ${context.baby?.activities?.length || 0}
+- Marcos alcançados: ${context.baby?.milestones?.length || 0}
+
+Forneça:
+1. Resposta direta à pergunta
+2. Conselhos práticos baseados no contexto
+3. Recursos adicionais se aplicável
+4. Sinais de alerta se necessário
+
+Responda em português brasileiro de forma acolhedora e profissional.`;
+
+      const response = await this.makeRequest({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          {
+            role: 'system',
+            content: 'Você é um especialista em desenvolvimento infantil e cuidados com bebês. Forneça conselhos personalizados e acolhedores.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 1000
+      });
+
+      if (!response.choices || !response.choices[0] || !response.choices[0].message) {
+        throw new Error('Resposta inválida da IA');
+      }
+
       const advice = response.choices[0].message.content;
 
-      await this.logInteraction(
-        userId,
-        'personalized_advice',
-        { question, context },
-        { advice },
-        request.model,
-        response.usage.total_tokens
-      );
+      await this.logInteraction(userId, 'personalized_advice', { question, context }, { advice }, 'llama-3.3-70b-versatile', response.usage?.total_tokens);
 
       return {
         advice,
-        tokensUsed: response.usage.total_tokens
+        context: {
+          question,
+          babyAge: context.baby ? Math.floor((Date.now() - new Date(context.baby.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 30)) : null
+        }
       };
     } catch (error) {
       console.error('Erro ao obter conselho personalizado:', error);
-      throw new Error('Não foi possível fornecer conselho personalizado');
+      return {
+        advice: 'Não foi possível gerar conselho personalizado no momento. Consulte um pediatra para orientações específicas.',
+        context: { question }
+      };
     }
   }
 
-  // Métodos auxiliares para extrair informações estruturadas
   private extractRecommendations(analysis: string): string[] {
-    const recommendations = analysis.match(/•\s*(.+)/g) || 
-                          analysis.match(/\d+\.\s*(.+)/g) ||
-                          analysis.match(/- (.+)/g);
-    return recommendations ? recommendations.map(r => r.replace(/^[•\d\.\-\s]+/, '').trim()) : [];
+    const recommendations = analysis.match(/\d+\.\s*(.+?)(?=\d+\.|$)/g);
+    return recommendations ? recommendations.map(r => r.replace(/^\d+\.\s*/, '').trim()) : [];
   }
 
   private extractNextSteps(tips: string): string[] {
-    const steps = tips.match(/próximos passos[:\s]*(.+)/i) ||
-                 tips.match(/sugestões[:\s]*(.+)/i);
-    return steps ? [steps[1].trim()] : [];
+    const steps = tips.match(/próximos? passos?[:\s]+(.+?)(?=\n|$)/i);
+    return steps && steps[1] ? [steps[1].trim()] : [];
   }
 
   private extractTimeline(predictions: string): any {
-    const timeline = {};
-    const months = predictions.match(/(\d+)\s*meses?/g);
-    if (months) {
-      months.forEach(month => {
-        const age = month.match(/(\d+)/)[1];
-        timeline[age] = 'Marcos esperados';
+    const timeline: Record<string, string> = {};
+    const monthMatches = predictions.match(/(\d+)\s*meses?[:\s]+(.+?)(?=\d+\s*meses?|$)/g);
+    
+    if (monthMatches) {
+      monthMatches.forEach(match => {
+        const month = match.match(/(\d+)/);
+        if (month && month[1]) {
+          const age = month[1];
+          timeline[age] = 'Marcos esperados';
+        }
       });
     }
+    
     return timeline;
   }
 
   private assessUrgency(interpretation: string): 'low' | 'medium' | 'high' {
     const urgentKeywords = ['emergência', 'urgente', 'imediatamente', 'hospital', 'médico'];
-    const mediumKeywords = ['observar', 'atenção', 'cuidado'];
+    const mediumKeywords = ['observar', 'atenção', 'cuidado', 'monitorar'];
     
-    const text = interpretation.toLowerCase();
+    const lowerInterpretation = interpretation.toLowerCase();
     
-    if (urgentKeywords.some(keyword => text.includes(keyword))) {
+    if (urgentKeywords.some(keyword => lowerInterpretation.includes(keyword))) {
       return 'high';
-    } else if (mediumKeywords.some(keyword => text.includes(keyword))) {
+    } else if (mediumKeywords.some(keyword => lowerInterpretation.includes(keyword))) {
       return 'medium';
     }
+    
     return 'low';
   }
 
