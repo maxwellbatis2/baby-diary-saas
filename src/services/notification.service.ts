@@ -15,6 +15,10 @@ export interface PushNotificationPayload {
 
 export class NotificationService {
   async sendPushNotification(payload: PushNotificationPayload): Promise<boolean> {
+    if (!messaging) {
+      console.warn('[Firebase] Notificações push desabilitadas (Firebase não configurado)');
+      return false;
+    }
     try {
       const deviceTokens = await prisma.deviceToken.findMany({
         where: {

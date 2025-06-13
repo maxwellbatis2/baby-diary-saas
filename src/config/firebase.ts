@@ -14,13 +14,20 @@ const serviceAccount = {
   client_x509_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL || ''
 };
 
-// Inicializar Firebase Admin SDK
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
-    projectId: process.env.FIREBASE_PROJECT_ID || 'baby-diary-94e16'
-  });
+// Inicializar Firebase Admin SDK apenas se houver configuração
+if (!admin.apps.length && process.env.FIREBASE_PROJECT_ID) {
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
+      projectId: process.env.FIREBASE_PROJECT_ID
+    });
+    console.log('✅ Firebase Admin SDK inicializado com sucesso');
+  } catch (error) {
+    console.warn('⚠️ Erro ao inicializar Firebase Admin SDK:', error);
+  }
+} else if (!process.env.FIREBASE_PROJECT_ID) {
+  console.log('ℹ️ Firebase Admin SDK não configurado - notificações push desabilitadas');
 }
 
-export const messaging = admin.messaging();
+export const messaging = admin.apps.length > 0 ? admin.messaging() : null;
 export default admin; 
