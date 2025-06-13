@@ -1,0 +1,93 @@
+{
+  "name": "BabyDiaryApp",
+  "displayName": "Baby Diary",
+  "version": "1.0.0",
+  "description": "App para acompanhamento do desenvolvimento de bebês",
+  "author": "Baby Diary Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/babydiary/app.git"
+  },
+  "keywords": [
+    "react-native",
+    "baby",
+    "diary",
+    "development",
+    "tracking",
+    "parenting",
+    "childcare",
+    "milestones",
+    "memories",
+    "activities"
+  ],
+  "platforms": ["ios", "android"],
+  "ios": {
+    "bundleIdentifier": "com.babydiary.app",
+    "buildNumber": "1",
+    "infoPlist": {
+      "NSCameraUsageDescription": "Este app precisa acessar a câmera para tirar fotos dos bebês",
+      "NSPhotoLibraryUsageDescription": "Este app precisa acessar a galeria para selecionar fotos",
+      "NSMicrophoneUsageDescription": "Este app precisa acessar o microfone para gravar áudios",
+      "NSLocationWhenInUseUsageDescription": "Este app precisa acessar a localização para registrar onde as atividades aconteceram",
+      "NSFaceIDUsageDescription": "Este app usa Face ID para autenticação segura",
+      "UIBackgroundModes": ["remote-notification", "background-processing"],
+      "CFBundleDisplayName": "Baby Diary",
+      "CFBundleName": "Baby Diary",
+      "CFBundleShortVersionString": "1.0.0",
+      "CFBundleVersion": "1"
+    },
+    "entitlements": {
+      "com.apple.developer.associated-domains": ["applinks:babydiary.app"],
+      "com.apple.developer.team-identifier": "YOUR_TEAM_ID"
+    }
+  },
+  "android": {
+    "package": "com.babydiary.app",
+    "versionCode": 1,
+    "permissions": [
+      "android.permission.CAMERA",
+      "android.permission.READ_EXTERNAL_STORAGE",
+      "android.permission.WRITE_EXTERNAL_STORAGE",
+      "android.permission.RECORD_AUDIO",
+      "android.permission.ACCESS_FINE_LOCATION",
+      "android.permission.ACCESS_COARSE_LOCATION",
+      "android.permission.USE_BIOMETRIC",
+      "android.permission.USE_FINGERPRINT",
+      "android.permission.INTERNET",
+      "android.permission.ACCESS_NETWORK_STATE",
+      "android.permission.WAKE_LOCK",
+      "android.permission.VIBRATE",
+      "android.permission.RECEIVE_BOOT_COMPLETED",
+      "android.permission.SCHEDULE_EXACT_ALARM"
+    ],
+    "intentFilters": [
+      {
+        "action": "android.intent.action.MAIN",
+        "category": ["android.intent.category.LAUNCHER"]
+      },
+      {
+        "action": "android.intent.action.VIEW",
+        "category": ["android.intent.category.DEFAULT", "android.intent.category.BROWSABLE"],
+        "data": {
+          "scheme": "babydiary",
+          "host": "app"
+        }
+      }
+    ]
+  },
+  "splash": {
+    "image": "./assets/splash.png",
+    "resizeMode": "contain",
+    "backgroundColor": "#FF6B9D"
+  },
+  "icon": "./assets/icon.png",
+  "adaptiveIcon": {
+    "foregroundImage": "./assets/adaptive-icon.png",
+    "backgroundColor": "#FF6B9D"
+  },
+  "notification": {
+    "icon": "./assets/notification-icon.png",
+    "color": "#FF6B9D"
+  }
+} 

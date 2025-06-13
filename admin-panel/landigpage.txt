@@ -1,0 +1,483 @@
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { CheckIcon, XIcon, ArrowRight, Baby, Heart, Star, CalendarClock, Sparkles, Moon, Sun, Brain, Users, Smartphone, Shield, Camera, MessageCircle, BarChart3, Zap, Globe, TrendingUp, Award } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { Link } from "react-router-dom";
+import { FeatureGrid } from "@/components/landing/FeatureGrid";
+import { TestimonialSection } from "@/components/landing/TestimonialSection";
+import { StatsSection } from "@/components/landing/StatsSection";
+
+const Index = () => {
+  const { user } = useAuth();
+  const [annualBilling, setAnnualBilling] = useState(true);
+
+  const coreFeatures = [
+    {
+      title: "Diário do Sono",
+      description: "Acompanhe os padrões de sono do seu bebê e receba insights personalizados para melhorar a qualidade do sono.",
+      icon: Moon
+    },
+    {
+      title: "Alimentação",
+      description: "Registre mamadas, papinhas e introdução alimentar. Receba dicas baseadas na idade do seu bebê.",
+      icon: Baby
+    },
+    {
+      title: "Curva de Crescimento",
+      description: "Acompanhe o desenvolvimento físico do seu bebê com gráficos comparativos baseados nos padrões da OMS.",
+      icon: CalendarClock
+    },
+    {
+      title: "Vacinação",
+      description: "Calendário de vacinas personalizado com lembretes automáticos para nunca perder uma dose importante.",
+      icon: Heart
+    }
+  ];
+
+  const aiFeatures = [
+    {
+      title: "Assistente IA",
+      description: "Chat inteligente para tirar dúvidas sobre desenvolvimento, sono e alimentação do seu bebê.",
+      icon: Brain,
+      badge: "Novo",
+      gradient: "bg-gradient-to-r from-purple-500 to-pink-500"
+    },
+    {
+      title: "Previsões Inteligentes",
+      description: "Análise preditiva de padrões de sono e sugestões de horários otimizados.",
+      icon: Zap,
+      badge: "IA",
+      gradient: "bg-gradient-to-r from-blue-500 to-cyan-500"
+    },
+    {
+      title: "Insights Personalizados",
+      description: "Relatórios automáticos com análises baseadas nos dados do seu bebê.",
+      icon: BarChart3,
+      badge: "Pro",
+      gradient: "bg-gradient-to-r from-green-500 to-emerald-500"
+    },
+    {
+      title: "Conselhos Especializados",
+      description: "Dicas e recomendações baseadas em milhares de dados de desenvolvimento infantil.",
+      icon: Award,
+      gradient: "bg-gradient-to-r from-orange-500 to-red-500"
+    }
+  ];
+
+  const socialFeatures = [
+    {
+      title: "Colaboração Familiar",
+      description: "Compartilhe com avós, babás e cuidadores. Cada um com permissões específicas.",
+      icon: Users
+    },
+    {
+      title: "Chat em Tempo Real",
+      description: "Converse com outros cuidadores sobre o bebê diretamente no app.",
+      icon: MessageCircle
+    },
+    {
+      title: "Modo Offline",
+      description: "Continue registrando mesmo sem internet. Sincronização automática quando conectar.",
+      icon: Smartphone
+    },
+    {
+      title: "Máxima Segurança",
+      description: "Criptografia end-to-end e total conformidade com LGPD para proteger os dados do seu bebê.",
+      icon: Shield
+    }
+  ];
+
+  const FeatureCard = ({ 
+    title, 
+    description,
+    icon: Icon,
+  }: { 
+    title: string;
+    description: string;
+    icon: any;
+  }) => (
+    <Card className="text-center shadow-lg border border-accent/60 hover:border-primary/20 transition-all">
+      <CardHeader>
+        <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-2">
+          <Icon className="h-6 w-6 text-primary" />
+        </div>
+        <CardTitle>{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-muted-foreground">{description}</p>
+      </CardContent>
+    </Card>
+  );
+
+  const PricingCard = ({ 
+    title, 
+    price, 
+    description, 
+    features, 
+    notIncluded,
+    popular,
+    buttonText,
+    buttonAction,
+    buttonVariant = "default"
+  }: { 
+    title: string;
+    price: string;
+    description: string;
+    features: string[];
+    notIncluded?: string[];
+    popular?: boolean;
+    buttonText: string;
+    buttonAction: () => void;
+    buttonVariant?: "default" | "outline" | "secondary";
+  }) => (
+    <Card className={`relative overflow-hidden shadow-lg ${popular ? 'border-primary shadow-xl border-2' : 'border'}`}>
+      {popular && (
+        <div className="absolute top-0 right-0">
+          <Badge className="m-2 bg-gradient-to-r from-pink-500 to-violet-500">Mais popular</Badge>
+        </div>
+      )}
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          {title}
+        </CardTitle>
+        <div className="flex items-end gap-1">
+          <span className="text-3xl font-bold">{price}</span>
+          {price !== "Grátis" && (
+            <span className="text-muted-foreground mb-1">/{annualBilling ? 'ano' : 'mês'}</span>
+          )}
+        </div>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ul className="space-y-2">
+          {features.map((feature, index) => (
+            <li key={index} className="flex items-start">
+              <CheckIcon className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
+              <span>{feature}</span>
+            </li>
+          ))}
+          {notIncluded && notIncluded.map((feature, index) => (
+            <li key={index} className="flex items-start text-muted-foreground">
+              <XIcon className="h-5 w-5 text-muted-foreground mr-2 shrink-0 mt-0.5" />
+              <span>{feature}</span>
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+      <CardFooter>
+        <Button 
+          onClick={buttonAction} 
+          className={`w-full ${buttonVariant === 'default' && popular ? 'bg-gradient-to-r from-pink-500 to-violet-500 hover:opacity-90 text-white' : ''}`}
+          variant={buttonVariant}
+        >
+          {buttonText}
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <header className="py-4 px-6 border-b shadow-sm">
+        <div className="container mx-auto flex justify-between items-center">
+          <Link to="/" className="font-bold text-xl text-primary flex items-center">
+            <Baby className="mr-2 h-5 w-5" /> Baby Diary
+          </Link>
+          <div className="flex items-center space-x-2">
+            <ThemeToggle />
+            {user ? (
+              <Button asChild variant="default" size="sm">
+                <Link to="/dashboard">Meu Diário</Link>
+              </Button>
+            ) : (
+              <>
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/login">Entrar</Link>
+                </Button>
+                <Button asChild variant="default" size="sm">
+                  <Link to="/register">Criar Conta</Link>
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-grow">
+        {/* Hero Section */}
+        <section className="py-20 px-6 md:py-28">
+          <div className="container mx-auto max-w-6xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+              <div>
+                <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-6">
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-violet-500 flex items-center">
+                    <Baby className="mr-2 h-8 w-8" /> Baby Diary
+                  </span>
+                  <br />
+                  Seu diário digital inteligente para acompanhar o bebê <Sparkles className="inline h-6 w-6 text-yellow-400" />
+                </h1>
+                <p className="text-lg text-muted-foreground mb-8">
+                  Registre atividades, memórias e marcos importantes do seu bebê com o poder da inteligência artificial. 
+                  Nunca perca um momento especial do desenvolvimento do seu pequeno <Heart className="inline h-4 w-4 text-pink-500" />
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  {user ? (
+                    <Button asChild size="lg" className="bg-gradient-to-r from-pink-500 to-violet-500 hover:opacity-90 text-white shadow-lg">
+                      <Link to="/dashboard">Ir para Meu Diário</Link>
+                    </Button>
+                  ) : (
+                    <>
+                      <Button asChild size="lg" className="bg-gradient-to-r from-pink-500 to-violet-500 hover:opacity-90 text-white shadow-lg">
+                        <Link to="/register">
+                          Começar Gratuitamente <Star className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <Button asChild variant="outline" size="lg">
+                        <Link to="/login">Já tenho uma conta</Link>
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className="relative">
+                <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%] bg-gradient-to-r from-pink-200/40 to-violet-200/40 rounded-full blur-3xl"></div>
+                <div className="rounded-xl overflow-hidden shadow-[0_20px_50px_rgba(217,70,219,0.2)]">
+                  <img
+                    src="https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=600&h=400&fit=crop"
+                    alt="Bebês brincando com frutas"
+                    className="w-full h-auto rounded-xl"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Stats Section */}
+        <StatsSection />
+
+        {/* Core Features */}
+        <FeatureGrid 
+          features={coreFeatures}
+          title="Funcionalidades exclusivas para mamães ❤️"
+          subtitle="Baby Diary foi projetado para tornar o acompanhamento do desenvolvimento do seu bebê simples e agradável"
+        />
+
+        {/* AI Features */}
+        <FeatureGrid 
+          features={aiFeatures}
+          title="Inteligência Artificial a seu favor 🤖"
+          subtitle="Tecnologia avançada para insights personalizados e sugestões inteligentes baseadas no comportamento único do seu bebê"
+        />
+
+        {/* Social Features */}
+        <FeatureGrid 
+          features={socialFeatures}
+          title="Conecte toda a família 👨‍👩‍👧‍👦"
+          subtitle="Mantenha todos os cuidadores sincronizados e engajados no desenvolvimento do bebê"
+        />
+
+        {/* Testimonials */}
+        <TestimonialSection />
+
+        {/* Pricing Section */}
+        <section className="py-16 px-6 bg-background">
+          <div className="container mx-auto max-w-6xl">
+            <div className="text-center max-w-3xl mx-auto mb-16">
+              <h2 className="text-3xl font-bold mb-4">Planos para todas as necessidades <Sparkles className="inline h-5 w-5 text-yellow-400" /></h2>
+              <p className="text-xl text-muted-foreground mb-8">
+                Escolha o plano perfeito para registrar todas as memórias e marcos importantes do seu bebê
+              </p>
+              
+              <div className="flex items-center justify-center space-x-2 mb-8">
+                <span className={!annualBilling ? "font-medium" : "text-muted-foreground"}>Mensal</span>
+                <button
+                  type="button"
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    annualBilling ? 'bg-primary' : 'bg-gray-200'
+                  }`}
+                  role="switch"
+                  aria-checked={annualBilling}
+                  onClick={() => setAnnualBilling(!annualBilling)}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      annualBilling ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+                <span className={annualBilling ? "font-medium" : "text-muted-foreground"}>
+                  Anual <Badge variant="outline" className="ml-1">Economize 20%</Badge>
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <PricingCard
+                title="Básico"
+                price="Grátis"
+                description="Perfeito para começar a registrar memórias do seu bebê"
+                features={[
+                  "Registro de 1 bebê",
+                  "Diário de memórias (até 10 por mês)",
+                  "Registro de atividades básicas",
+                  "Fotos em baixa resolução",
+                  "Marcos do desenvolvimento"
+                ]}
+                notIncluded={[
+                  "Assistente IA avançado",
+                  "Backup automático na nuvem",
+                  "Compartilhamento com familiares",
+                  "Relatórios e análises",
+                  "Exportação de memórias"
+                ]}
+                buttonText={user ? "Seu plano atual" : "Começar grátis"}
+                buttonAction={() => user ? window.location.href = '/dashboard' : window.location.href = '/register'}
+                buttonVariant={user ? "outline" : "default"}
+              />
+
+              <PricingCard
+                title="Premium"
+                price={annualBilling ? "R$19,90" : "R$24,90"}
+                description="Ideal para acompanhar todo o desenvolvimento do seu bebê"
+                features={[
+                  "Registro de até 5 bebês",
+                  "Diário de memórias ilimitado",
+                  "Assistente IA completo",
+                  "Todos os tipos de atividades",
+                  "Fotos em alta resolução",
+                  "Marcos do desenvolvimento personalizados",
+                  "Backup automático na nuvem",
+                  "Compartilhamento com até 5 familiares",
+                  "Relatórios com IA",
+                  "Exportação mensal de memórias",
+                  "Suporte prioritário"
+                ]}
+                popular
+                buttonText="Assinar Premium"
+                buttonAction={() => alert('Funcionalidade de assinatura em breve!')}
+                buttonVariant="default"
+              />
+
+              <PricingCard
+                title="Família"
+                price={annualBilling ? "R$29,90" : "R$36,90"}
+                description="Para famílias que querem registrar tudo com o máximo de recursos"
+                features={[
+                  "Registro de bebês ilimitado",
+                  "Diário de memórias ilimitado",
+                  "IA avançada com previsões",
+                  "Todos os tipos de atividades",
+                  "Fotos e vídeos em alta resolução",
+                  "Marcos do desenvolvimento personalizados",
+                  "Backup automático na nuvem",
+                  "Compartilhamento ilimitado com familiares",
+                  "Consultoria virtual com especialistas",
+                  "Exportação em diversos formatos",
+                  "Álbuns de memórias impressos anuais",
+                  "Relatórios avançados de desenvolvimento",
+                  "Suporte VIP 24/7"
+                ]}
+                buttonText="Assinar Família"
+                buttonAction={() => alert('Funcionalidade de assinatura em breve!')}
+                buttonVariant="outline"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section className="py-16 px-6 bg-accent/30">
+          <div className="container mx-auto max-w-4xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold mb-4">Perguntas Frequentes <Sparkles className="inline h-5 w-5 text-yellow-400" /></h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Tudo o que você precisa saber sobre o Baby Diary
+              </p>
+            </div>
+
+            <Accordion type="single" collapsible className="bg-background rounded-lg p-6 shadow-lg">
+              <AccordionItem value="item-1">
+                <AccordionTrigger className="text-lg font-medium">
+                  O que é o Baby Diary e como a IA pode me ajudar?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Baby Diary é um aplicativo inteligente de acompanhamento do desenvolvimento e rotina do bebê que usa IA para fornecer insights personalizados. Nossa inteligência artificial analisa os padrões do seu bebê e oferece sugestões de horários, previsões de sono e dicas baseadas em dados científicos.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-2">
+                <AccordionTrigger className="text-lg font-medium">
+                  Posso utilizar gratuitamente? Quais são as limitações?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Sim! O plano Básico é totalmente gratuito e permite registrar 1 bebê, com até 10 memórias por mês e funções básicas. Para acessar o assistente IA completo, colaboração familiar avançada e análises preditivas, oferecemos os planos Premium e Família.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-3">
+                <AccordionTrigger className="text-lg font-medium">
+                  Como funciona o assistente de IA? É seguro?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Nosso assistente IA usa tecnologia avançada para analisar padrões e fornecer insights personalizados sobre sono, alimentação e desenvolvimento. Todos os dados são criptografados e processados com total segurança, seguindo rigorosamente a LGPD. A IA não substitui conselhos médicos profissionais.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-4">
+                <AccordionTrigger className="text-lg font-medium">
+                  Como funciona o compartilhamento com familiares?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Nos planos pagos, você pode compartilhar o diário do bebê com avós, tios ou babás, permitindo que eles também visualizem as atividades e memórias registradas. Cada pessoa pode ter permissões específicas (visualizar, editar, ou administrar). Há também chat em tempo real para coordenação entre cuidadores.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-5">
+                <AccordionTrigger className="text-lg font-medium">
+                  Meus dados estão seguros no aplicativo?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Sim! A segurança dos seus dados e os do seu bebê é nossa prioridade máxima. Utilizamos criptografia end-to-end, autenticação biométrica e seguimos todas as normas de proteção de dados (LGPD/GDPR). Além disso, nos planos Premium e Família, oferecemos backup automático em múltiplas nuvens para garantir que suas memórias nunca sejam perdidas.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-6">
+                <AccordionTrigger className="text-lg font-medium">
+                  O app funciona offline? E se eu perder a conexão?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Sim! O Baby Diary funciona completamente offline. Você pode registrar atividades, adicionar fotos e criar memórias mesmo sem internet. Quando a conexão retornar, tudo será sincronizado automaticamente e de forma segura com a nuvem.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+        </section>
+      </main>
+
+      <footer className="py-8 px-6 border-t">
+        <div className="container mx-auto max-w-6xl">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="font-semibold text-lg mb-4 md:mb-0 flex items-center">
+              <Baby className="mr-2 h-5 w-5" /> Baby Diary
+            </div>
+            <div className="flex items-center gap-4">
+              <ThemeToggle />
+              <div className="text-muted-foreground text-sm">
+                &copy; {new Date().getFullYear()} Baby Diary. Todos os direitos reservados.
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default Index;

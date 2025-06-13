@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Login - Baby Diary Admin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste de Login - Baby Diary Admin</h1>
+    
+    <div class="container">
+        <h2>1. Limpar localStorage</h2>
+        <button onclick="clearStorage()">🧹 Limpar localStorage</button>
+        <div id="clearResult"></div>
+    </div>
+
+    <div class="container">
+        <h2>2. Testar Login</h2>
+        <button onclick="testLogin()">🔐 Testar Login</button>
+        <div id="loginResult"></div>
+    </div>
+
+    <div class="container">
+        <h2>3. Verificar localStorage</h2>
+        <button onclick="checkStorage()">🔍 Verificar Storage</button>
+        <div id="storageResult"></div>
+    </div>
+
+    <div class="container">
+        <h2>4. Testar API Diretamente</h2>
+        <button onclick="testApiDirectly()">🌐 Testar API</button>
+        <div id="apiResult"></div>
+    </div>
+
+    <script>
+        async function clearStorage() {
+            try {
+                localStorage.removeItem('admin_token');
+                localStorage.removeItem('admin_data');
+                document.getElementById('clearResult').innerHTML = '<p class="success">✅ localStorage limpo com sucesso!</p>';
+            } catch (error) {
+                document.getElementById('clearResult').innerHTML = `<p class="error">❌ Erro: ${error.message}</p>`;
+            }
+        }
+
+        async function testLogin() {
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@babydiary.com',
+                        password: 'admin123'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Salvar no localStorage
+                    localStorage.setItem('admin_token', data.data.token);
+                    localStorage.setItem('admin_data', JSON.stringify(data.data.user));
+                    
+                    document.getElementById('loginResult').innerHTML = `
+                        <p class="success">✅ Login realizado com sucesso!</p>
+                        <p><strong>Token:</strong> ${data.data.token.substring(0, 50)}...</p>
+                        <p><strong>Admin:</strong> ${data.data.user.name} (${data.data.user.email})</p>
+                    `;
+                } else {
+                    document.getElementById('loginResult').innerHTML = `<p class="error">❌ Falha no login: ${data.error}</p>`;
+                }
+            } catch (error) {
+                document.getElementById('loginResult').innerHTML = `<p class="error">❌ Erro na requisição: ${error.message}</p>`;
+            }
+        }
+
+        function checkStorage() {
+            try {
+                const token = localStorage.getItem('admin_token');
+                const adminData = localStorage.getItem('admin_data');
+                
+                let result = '<h3>Status do localStorage:</h3>';
+                result += `<p><strong>Token:</strong> ${token ? '✅ Presente' : '❌ Ausente'}</p>`;
+                result += `<p><strong>Admin Data:</strong> ${adminData ? '✅ Presente' : '❌ Ausente'}</p>`;
+                
+                if (adminData) {
+                    try {
+                        const parsed = JSON.parse(adminData);
+                        result += `<p><strong>Admin válido:</strong> ✅ ${parsed.name} (${parsed.email})</p>`;
+                    } catch (e) {
+                        result += `<p><strong>Admin válido:</strong> ❌ JSON inválido</p>`;
+                    }
+                }
+                
+                document.getElementById('storageResult').innerHTML = result;
+            } catch (error) {
+                document.getElementById('storageResult').innerHTML = `<p class="error">❌ Erro: ${error.message}</p>`;
+            }
+        }
+
+        async function testApiDirectly() {
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@babydiary.com',
+                        password: 'admin123'
+                    })
+                });
+
+                const data = await response.json();
+                
+                document.getElementById('apiResult').innerHTML = `
+                    <p class="info">📡 Resposta da API:</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('apiResult').innerHTML = `<p class="error">❌ Erro: ${error.message}</p>`;
+            }
+        }
+
+        // Verificar automaticamente ao carregar
+        window.onload = function() {
+            checkStorage();
+        };
+    </script>
+</body>
+</html> 

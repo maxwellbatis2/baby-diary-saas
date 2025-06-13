@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limpar Storage - Baby Diary Admin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        button {
+            background-color: #dc2626;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: #b91c1c;
+        }
+        .success {
+            color: #059669;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc2626;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Limpar Storage do Painel Admin</h1>
+    <p>Esta página ajuda a limpar dados corrompidos do localStorage.</p>
+    
+    <div id="status"></div>
+    
+    <button onclick="clearStorage()">🧹 Limpar localStorage</button>
+    <button onclick="checkStorage()">🔍 Verificar Storage</button>
+    <button onclick="goToAdmin()">🏠 Ir para Admin</button>
+    
+    <script>
+        function clearStorage() {
+            try {
+                localStorage.removeItem('admin_token');
+                localStorage.removeItem('admin_data');
+                document.getElementById('status').innerHTML = '<p class="success">✅ localStorage limpo com sucesso!</p>';
+            } catch (error) {
+                document.getElementById('status').innerHTML = '<p class="error">❌ Erro ao limpar: ' + error.message + '</p>';
+            }
+        }
+        
+        function checkStorage() {
+            try {
+                const token = localStorage.getItem('admin_token');
+                const adminData = localStorage.getItem('admin_data');
+                
+                let status = '<h3>Status do Storage:</h3>';
+                status += '<p><strong>Token:</strong> ' + (token ? '✅ Presente' : '❌ Ausente') + '</p>';
+                status += '<p><strong>Admin Data:</strong> ' + (adminData ? '✅ Presente' : '❌ Ausente') + '</p>';
+                
+                if (adminData) {
+                    try {
+                        const parsed = JSON.parse(adminData);
+                        status += '<p><strong>Admin Data válido:</strong> ✅ Sim</p>';
+                    } catch (e) {
+                        status += '<p><strong>Admin Data válido:</strong> ❌ Não (JSON inválido)</p>';
+                    }
+                }
+                
+                document.getElementById('status').innerHTML = status;
+            } catch (error) {
+                document.getElementById('status').innerHTML = '<p class="error">❌ Erro ao verificar: ' + error.message + '</p>';
+            }
+        }
+        
+        function goToAdmin() {
+            window.location.href = '/';
+        }
+        
+        // Verificar automaticamente ao carregar
+        window.onload = checkStorage;
+    </script>
+</body>
+</html> 
