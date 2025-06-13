@@ -215,28 +215,27 @@ export class StripeService {
   // Handlers de webhook
   private async handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
     try {
-      if (!session.customer || !session.subscription) {
-        return;
-      }
-
-      // Buscar usuário pelo customer ID
+      // Buscar usuário pelo email do customer
       const user = await prisma.user.findFirst({
-        where: { stripeCustomerId: session.customer as string },
+        where: { 
+          email: session.customer_email || ''
+        },
       });
 
       if (!user) {
-        console.error('Usuário não encontrado para o customer ID:', session.customer);
+        console.error('Usuário não encontrado para o email:', session.customer_email);
         return;
       }
 
-      // Buscar plano pelo price ID
       const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
       const plan = await prisma.plan.findFirst({
-        where: { stripePriceId: subscription.items.data[0].price.id },
+        where: { 
+          stripePriceId: subscription.items.data[0]?.price?.id || ''
+        },
       });
 
       if (!plan) {
-        console.error('Plano não encontrado para o price ID:', subscription.items.data[0].price.id);
+        console.error('Plano não encontrado para o price ID:', subscription.items.data[0]?.price?.id);
         return;
       }
 
@@ -278,39 +277,36 @@ export class StripeService {
 
   private async handleSubscriptionCreated(subscription: Stripe.Subscription) {
     try {
-      // Buscar usuário pelo customer ID
-      const user = await prisma.user.findFirst({
-        where: { stripeCustomerId: subscription.customer as string },
+      // Buscar assinatura existente pelo stripeSubscriptionId
+      const existingSubscription = await prisma.subscription.findFirst({
+        where: { stripeSubscriptionId: subscription.id },
+        include: { user: true }
       });
 
-      if (!user) {
-        console.error('Usuário não encontrado para o customer ID:', subscription.customer);
+      if (!existingSubscription) {
+        console.error('Assinatura não encontrada no banco:', subscription.id);
         return;
       }
 
+      const user = existingSubscription.user;
+
       // Buscar plano pelo price ID
       const plan = await prisma.plan.findFirst({
-        where: { stripePriceId: subscription.items.data[0].price.id },
+        where: { 
+          stripePriceId: subscription.items.data[0]?.price?.id || ''
+        },
       });
 
       if (!plan) {
-        console.error('Plano não encontrado para o price ID:', subscription.items.data[0].price.id);
+        console.error('Plano não encontrado para o price ID:', subscription.items.data[0]?.price?.id);
         return;
       }
 
       // Atualizar assinatura
-      await prisma.subscription.upsert({
-        where: { userId: user.id },
-        update: {
-          status: subscription.status,
-          currentPeriodStart: new Date(subscription.current_period_start * 1000),
-          currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-          cancelAtPeriodEnd: subscription.cancel_at_period_end,
-        },
-        create: {
-          userId: user.id,
+      await prisma.subscription.update({
+        where: { id: existingSubscription.id },
+        data: {
           planId: plan.id,
-          stripeSubscriptionId: subscription.id,
           stripeCustomerId: subscription.customer as string,
           status: subscription.status,
           currentPeriodStart: new Date(subscription.current_period_start * 1000),
