@@ -1,19 +1,8 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "rootDir": "./src",
     "outDir": "./dist",
-    "baseUrl": "./",
-    "paths": {
-      "@/*": ["src/*"],
-      "@/types/*": ["src/types/*"],
-      "@/utils/*": ["src/utils/*"],
-      "@/config/*": ["src/config/*"],
-      "@/middlewares/*": ["src/middlewares/*"],
-      "@/controllers/*": ["src/controllers/*"],
-      "@/services/*": ["src/services/*"],
-      "@/routes/*": ["src/routes/*"]
-    }
+    "rootDir": "./src"
   },
   "include": [
     "src/**/*"
@@ -21,9 +10,9 @@
   "exclude": [
     "node_modules",
     "dist",
-    "admin-panel",
     "prisma",
     "**/*.test.ts",
-    "**/*.spec.ts"
+    "**/*.spec.ts",
+    "scripts"
   ]
 } 
