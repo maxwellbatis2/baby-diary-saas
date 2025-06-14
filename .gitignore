@@ -375,3 +375,7 @@ ios/Pods/ReactCommon
 ios/Pods/Yoga
 ios/Pods/glog
 ios/Pods/react-native-config baby-diary-94e16-firebase-adminsdk-fbsvc-96742fabdd.json
+
+baby-diary-94e16-firebase-adminsdk-fbsvc-*.json
+
+*.firebase-adminsdk-*.json
