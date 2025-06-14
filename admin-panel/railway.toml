@@ -1,5 +1,6 @@
 [build]
 builder = "dockerfile"
+dockerfilePath = "Dockerfile"
 
 [deploy]
 healthcheckPath = "/health"
@@ -11,4 +12,5 @@ restartPolicyMaxRetries = 3
 command = "npm start"
 
 [build.environment]
-NODE_ENV = "production" 
+NODE_ENV = "production"
+NEXT_TELEMETRY_DISABLED = "1" 
