@@ -8,4 +8,7 @@ restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
 
 [deploy.startCommand]
-command = "npm start" 
+command = "npm start"
+
+[build.environment]
+NODE_ENV = "production" 
