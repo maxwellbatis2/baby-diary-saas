@@ -33,6 +33,15 @@ const nextConfig = {
       },
     ];
   },
+  // Configurações para Railway
+  serverRuntimeConfig: {
+    // Will only be available on the server side
+    mySecret: process.env.MY_SECRET,
+  },
+  publicRuntimeConfig: {
+    // Will be available on both server and client
+    staticFolder: '/static',
+  },
 }
 
 module.exports = nextConfig 
