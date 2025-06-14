@@ -20,7 +20,6 @@ import {
   TrendingUp,
   Baby,
   Activity,
-  Memory,
   Target,
   MessageSquare,
   BarChart3,

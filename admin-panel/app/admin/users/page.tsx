@@ -44,7 +44,7 @@ export default function UsersPage() {
       
       if (response.success && response.data && response.data.users && Array.isArray(response.data.users)) {
         setUsers(response.data.users)
-        console.log(`Carregados ${response.data.users.length} usuários de ${response.data.pagination?.total || 'N/A'} total`)
+        console.log(`Carregados ${response.data.users.length} usuários`)
       } else {
         console.error('Resposta inválida da API:', response)
         setUsers([])
