@@ -25,7 +25,7 @@ async function main() {
   // Criar planos padrão
   const plans = await Promise.all([
     prisma.plan.upsert({
-      where: { name: 'Básico' },
+      where: { stripePriceId: 'price_basic_free' },
       update: {},
       create: {
         name: 'Básico',
@@ -52,7 +52,7 @@ async function main() {
       },
     }),
     prisma.plan.upsert({
-      where: { name: 'Premium' },
+      where: { stripePriceId: 'price_premium_monthly' },
       update: {},
       create: {
         name: 'Premium',
@@ -83,7 +83,7 @@ async function main() {
       },
     }),
     prisma.plan.upsert({
-      where: { name: 'Família' },
+      where: { stripePriceId: 'price_family_monthly' },
       update: {},
       create: {
         name: 'Família',
@@ -235,62 +235,72 @@ async function main() {
   // Criar regras de gamificação padrão
   const gamificationRules = await Promise.all([
     prisma.gamificationRule.upsert({
-      where: { name: 'Primeiro Cadastro' },
+      where: { id: 'first_signup' },
       update: {},
       create: {
+        id: 'first_signup',
         name: 'Primeiro Cadastro',
         description: 'Parabéns por começar sua jornada!',
         points: 100,
         condition: 'first_signup',
         badgeIcon: 'star',
+        category: 'milestone',
         isActive: true,
       },
     }),
     prisma.gamificationRule.upsert({
-      where: { name: 'Login Diário' },
+      where: { id: 'daily_login' },
       update: {},
       create: {
+        id: 'daily_login',
         name: 'Login Diário',
         description: 'Mantendo a consistência!',
         points: 10,
         condition: 'daily_login',
         badgeIcon: 'calendar-check',
+        category: 'daily',
         isActive: true,
       },
     }),
     prisma.gamificationRule.upsert({
-      where: { name: 'Primeira Atividade' },
+      where: { id: 'first_activity' },
       update: {},
       create: {
+        id: 'first_activity',
         name: 'Primeira Atividade',
         description: 'Começou a registrar!',
         points: 50,
         condition: 'first_activity',
         badgeIcon: 'plus-circle',
+        category: 'milestone',
         isActive: true,
       },
     }),
     prisma.gamificationRule.upsert({
-      where: { name: 'Marco Importante' },
+      where: { id: 'milestone_recorded' },
       update: {},
       create: {
+        id: 'milestone_recorded',
         name: 'Marco Importante',
         description: 'Registrou um marco de desenvolvimento!',
         points: 200,
         condition: 'milestone_recorded',
         badgeIcon: 'trophy',
+        category: 'milestone',
         isActive: true,
       },
     }),
     prisma.gamificationRule.upsert({
-      where: { name: 'Memória Especial' },
+      where: { id: 'memory_created' },
       update: {},
       create: {
+        id: 'memory_created',
         name: 'Memória Especial',
         description: 'Preservou um momento único!',
         points: 150,
         condition: 'memory_created',
         badgeIcon: 'heart',
+        category: 'milestone',
         isActive: true,
       },
     }),
